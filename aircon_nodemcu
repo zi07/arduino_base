@@ -1,0 +1,75 @@
+#include <Arduino.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266WiFiMulti.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
+ESP8266WiFiMulti WiFiMulti;
+void IRsend(int IRpin, int IRsignal[]) {
+  int i=0;
+  pinMode(IRpin, OUTPUT);
+  do {
+    if (IRsignal[i]>0) {
+      int duration = IRsignal[i];
+      while (duration > 0) {
+        digitalWrite(IRpin, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(IRpin, LOW);
+        delayMicroseconds(10);
+        duration -= 26;         // 38 kHz = 26.3 uSec
+      }
+    }
+    else {
+      delayMicroseconds(abs(IRsignal[i]));
+    }
+    i+=1;
+  }
+  while (IRsignal[i] != 0);
+}
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+  WiFiMulti.addAP("MOTOFIT_2G", "wl123456");
+}
+void loop() {
+  if ((WiFiMulti.run() == WL_CONNECTED)) {
+    WiFiClient client;
+    HTTPClient http;
+    Serial.print("[HTTP] begin...\n");
+    http.begin(client, "http://edong.dothome.co.kr/_motofit/read_nodemcu1.php");
+    Serial.print("[HTTP] GET...\n");
+    int httpCode = http.GET();
+    if (httpCode > 0) {
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+      if (httpCode == HTTP_CODE_OK) {
+        int payload_int[220];
+        String payload = http.getString();
+        for (int i=0; i<=220; i++){ 
+          int comma_cnt = payload.indexOf(",",0);
+          payload_int[i] = payload.substring(0,comma_cnt).toInt();
+          Serial.print(i); Serial.print(" => "); 
+          Serial.println(payload_int[i]);
+          payload.remove(0,comma_cnt+1);
+          
+        } //for close
+       IRsend(16,payload_int);
+      }
+      
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+    //여기서부터 대충붙임
+    http.begin(client, "http://edong.dothome.co.kr/_motofit/insert_remote.php?temp=0&aircon_on=1");
+    httpCode = http.GET();
+    if (httpCode > 0) {
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+      if (httpCode == HTTP_CODE_OK) {
+          String payload = http.getString();
+        Serial.println(payload);
+      }
+    }
+    //여기까지 대충붙임
+   http.end();
+  }
+  delay(5000);
+}
