@@ -49,27 +49,23 @@ void loop() {
           payload_int[i] = payload.substring(0,comma_cnt).toInt();
           Serial.print(i); Serial.print(" => "); 
           Serial.println(payload_int[i]);
-          payload.remove(0,comma_cnt+1);
-          
+          payload.remove(0,comma_cnt+1); 
         } //for close
        IRsend(16,payload_int);
       }
-      
     } else {
       Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
     }
-    //여기서부터 대충붙임
-    http.begin(client, "http://edong.dothome.co.kr/_motofit/insert_remote.php?temp=0&aircon_on=1");
-    httpCode = http.GET();
-    if (httpCode > 0) {
-      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-      if (httpCode == HTTP_CODE_OK) {
-          String payload = http.getString();
-        Serial.println(payload);
-      }
-    }
-    //여기까지 대충붙임
-   http.end();
-  }
-  delay(5000);
+  http.end();
+ //여기서부터 대충붙여넣기
+ http.begin(client, "http://edong.dothome.co.kr/_motofit/insert_remote.php?temp=0&aircon_on=1");
+ httpCode = http.GET();
+ if (httpCode > 0) {
+ if (httpCode == HTTP_CODE_OK) {
+ String payload = http.getString();
+ }}
+  http.end();
+ //여기까지 대충붙여넣기
+}
+ delay(3000);
 }
