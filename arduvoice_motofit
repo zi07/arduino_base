@@ -1,0 +1,66 @@
+#include <SoftwareSerial.h>
+#define BLUETX 3 //블루투스 TX
+#define BLUERX 2 //블루투스 RX
+
+String inString = "";
+
+SoftwareSerial btSerial(BLUETX, BLUERX); //TX, RX
+
+// id,state,delay 순으로 bt통신 수신 delay=0 이면 무한
+// ex.) D4,ON,T4000 // D4포트를 LOW로 4초간 세트
+
+
+void setup() {
+  Serial.begin(9600);
+  btSerial.begin(9600);
+  for(int i=4; i<22; i++){
+    pinMode(i, OUTPUT);
+    digitalWrite(i, HIGH); // 모든 입력은 -출력으로
+  }
+  Serial.println("Carrmu engin and light control is ready to start");
+}
+
+void loop() {
+  if(Serial.available()){
+    inString = Serial.readStringUntil('\n');
+    Serial.print("DATA INPUT = ");Serial.print(inString);Serial.print("");Serial.println("");
+    String string_D, string_A, string_O, string_T = "";
+        
+    int sch_D_start = inString.indexOf("D",0); //D로 시작하는 문자찾기
+    int sch_D_end = inString.indexOf(",",sch_D_start); //D로 시작해서","까지 찾기
+    string_D = inString.substring(sch_D_start+1,sch_D_end);
+    if (sch_D_start == -1){string_D = "";}
+    int int_D = (string_D.toInt());
+        
+    int sch_A_start = inString.indexOf("A",0); //A로 시작하는 문자찾기
+    int sch_A_end = inString.indexOf(",",sch_A_start); //A로 시작해서","까지 찾기
+    string_A = inString.substring(sch_A_start+1,sch_A_end);
+    if (sch_A_start == -1){string_A = "";}
+    int int_A = (string_A.toInt())+14;
+
+    int sch_O_start = inString.indexOf("O",0); //O로 시작하는 문자찾기
+    int sch_O_end = inString.indexOf(",",sch_O_start); //O로 시작해서","까지 찾기
+    string_O = inString.substring(sch_O_start,sch_O_end);
+    if (sch_O_start == -1){string_O = "";}
+    
+    int sch_T_start = inString.indexOf("T",0); //O로 시작하는 문자찾기
+    int sch_T_end = inString.indexOf(",",sch_T_start); //O로 시작해서","까지 찾기
+    string_T = inString.substring(sch_T_start+1,sch_T_end);
+    if (sch_T_start == -1){string_T = "";}
+    int int_T = (string_T.toInt());
+    
+    Serial.println(int_D);
+    Serial.println(int_A);
+    Serial.println(string_O);
+    Serial.println(int_T);
+
+    
+  
+  
+  
+  
+  
+  
+  
+  
+  }
