@@ -1,0 +1,20 @@
+//arduino nano output test
+void setup() {
+  Serial.begin(115200);
+  for(int i=4; i<22; i++){//0,1 Serial port // 2,3 blueTooth port
+  pinMode(i, OUTPUT);
+  }
+}
+char delay_time = 100;
+// the loop function runs over and over again forever
+void loop() {
+  for(int i=4; i<20; i++){
+  digitalWrite(i, HIGH);
+  delay(delay_time);
+  digitalWrite(i, LOW);
+  delay(delay_time);
+  }
+  delay_time = delay_time - (delay_time*0.1);
+  Serial.println(delay_time, DEC);
+  if (delay_time < 1) {delay_time = 100;}
+}
