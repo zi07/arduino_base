@@ -9,9 +9,15 @@ SoftwareSerial btSerial(BLUETX, BLUERX); //TX, RX
 // id,state,delay 순으로 bt통신 수신 delay=0 이면 무한
 // ex.) D4,ON,T4000 // D4포트를 LOW로 4초간 세트
 void output_D_A(int int_D_A, int int_O, int int_T){
-digitalWrite(int_D_A, int_O);
-Serial.println(int_D_A);Serial.println(int_O);
-if (int_T != 0) { delay(int_T); digitalWrite(int_D_A, !int_O);}
+  digitalWrite(int_D_A, int_O);
+  Serial.println(int_D_A);Serial.println(int_O);
+  if (int_T != 0) {
+    unsigned long cur_millis = millis();
+    while( millis() - cur_millis <= int_T ){
+      Serial.println("delay loop");
+    }
+    digitalWrite(int_D_A, !int_O);
+  }
 }
 
 void setup() {
@@ -27,42 +33,46 @@ void setup() {
 void loop() {
   if(Serial.available()){
     inString = Serial.readStringUntil('\n');
-    Serial.print("DATA INPUT = ");Serial.print(inString);Serial.print("");Serial.println("");
+    Serial.print("DATA INPUT = ");Serial.print(inString);
+    Serial.print("");Serial.println("");
+  
     String string_D = "", string_A = "", string_O ="", string_T = "";
     int int_D = -1, int_A = -1, int_O = -1, int_T = 0;         
     
     int sch_D_start = inString.indexOf("D",0); //D로 시작하는 문자찾기
     int sch_D_end = inString.indexOf(",",sch_D_start); //D로 시작해서","까지 찾기
-    string_D = inString.substring(sch_D_start+1,sch_D_end);
-    if (sch_D_start == -1){string_D = "";}
-    else {int_D = (string_D.toInt());}
+    if (sch_D_start == -1){string_D = ""; int_D = -1;}//D로 시작하는 문자가 없다면
+    else {string_D = inString.substring(sch_D_start+1,sch_D_end);
+      int_D = (string_D.toInt());
+    }
         
     int sch_A_start = inString.indexOf("A",0); //A로 시작하는 문자찾기
     int sch_A_end = inString.indexOf(",",sch_A_start); //A로 시작해서","까지 찾기
-    string_A = inString.substring(sch_A_start+1,sch_A_end);
-    if (sch_A_start == -1){string_A = "";}
-    else {int_A = (string_A.toInt())+14;}
-
+    if (sch_A_start == -1){string_A = ""; int_A = -1;}//A로 시작하는 문자가 없다면
+    else {string_A = inString.substring(sch_A_start+1,sch_A_end);
+      int_A = (string_A.toInt());
+    }
+    
     int sch_O_start = inString.indexOf("O",0); //O로 시작하는 문자찾기
     int sch_O_end = inString.indexOf(",",sch_O_start); //O로 시작해서","까지 찾기
-    string_O = inString.substring(sch_O_start,sch_O_end);
-    if (sch_O_start == -1){string_O = "";}
-        
-    int sch_T_start = inString.indexOf("T",0); //O로 시작하는 문자찾기
-    int sch_T_end = inString.indexOf(",",sch_T_start); //O로 시작해서","까지 찾기
-    string_T = inString.substring(sch_T_start+1,sch_T_end);
-    if (sch_T_start == -1){string_T = "";}
-    else {int_T = (string_T.toInt());}
-    
-    if(string_O == "ON") {int_O = 0;}
-    else if(string_O == "OFF") {int_O = 1;}
-    else {int_O = -1;}
+    if (sch_O_start == -1){string_O = ""; int_O = -1;}//O로 시작하는 문자가 없다면
+    else {string_O = inString.substring(sch_O_start+1,sch_O_start+2);
+      if (string_O == "N") { int_O = 0; }
+      else if (string_O == "F") { int_O = 1; }
+      else { int_O = -1; }
+    }
+      
+    int sch_T_start = inString.indexOf("T",0); //T로 시작하는 문자찾기
+    int sch_T_end = inString.indexOf(",",sch_T_start); //T로 시작해서","까지 찾기
+    if (sch_T_start == -1){string_T = ""; int_T = 0;}//T로 시작하는 문자가 없다면
+    else {string_T = inString.substring(sch_T_start+1,sch_T_end);
+      int_T = (string_T.toInt());
+    }
 
     Serial.print("int_D -> ");Serial.println(int_D);
     Serial.print("int_A -> ");Serial.println(int_A);
     Serial.print("int_O -> ");Serial.println(int_O);
     Serial.print("int_T -> ");Serial.println(int_T);
-    
     
     if ( (4 <= int_D) && (int_D <= 13) ){
       output_D_A(int_D,int_O,int_T);
@@ -73,7 +83,4 @@ void loop() {
     else {Serial.println("not action");}
 
   }
-
 }//loop close
-
-  
