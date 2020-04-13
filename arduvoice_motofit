@@ -50,7 +50,7 @@ void loop() {
     int sch_A_end = inString.indexOf(",",sch_A_start); //A로 시작해서","까지 찾기
     if (sch_A_start == -1){string_A = ""; int_A = -1;}//A로 시작하는 문자가 없다면
     else {string_A = inString.substring(sch_A_start+1,sch_A_end);
-      int_A = (string_A.toInt());
+      int_A = (string_A.toInt()+14);
     }
     
     int sch_O_start = inString.indexOf("O",0); //O로 시작하는 문자찾기
