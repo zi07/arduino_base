@@ -1,0 +1,62 @@
+#include <SoftwareSerial.h>
+#define BLUETX 3 //BlueTooth TX
+#define BLUERX 2 //BlueTooth Rx
+
+int int_data = 0;
+int int_data_old = 0;
+int base_delay = 500;
+int window_delay = 4000;
+int sunroof_delay = 7000;
+unsigned long pre_millis = 0;
+
+SoftwareSerial btSerial(BLUETX, BLUERX); //TX, RX
+
+void setup() {
+  Serial.begin(9600);
+  btSerial.begin(9600);
+  for(int i=4; i<22; i++){
+    pinMode(i, OUTPUT);
+    digitalWrite(i, HIGH);
+  }
+  Serial.println("Carrmu engin and light control is ready to start");
+}
+
+void data_r(){
+  if(btSerial.available()) int_data = btSerial.read()-61;
+}
+
+void loop() {
+  int_data = 0;
+  data_r();
+  if ((4 <= int_data)&&(int_data <= 21)){
+      Serial.println(int_data);
+      digitalWrite(int_data,LOW);
+      pre_millis = millis();
+      int_data_old = int_data;
+      while((millis()-pre_millis) < base_delay ) {
+        data_r();
+        if(int_data_old == int_data-32) {break;}
+      }
+      digitalWrite(int_data_old,HIGH);
+    }
+}
+/*
+#define A 4   //F.L. Window Down
+#define B 5   //F.L. Window Up
+#define C 6   //F.R. Window Down
+#define D 7   //F.R. Window Up
+#define E 8   //R.L. Window Down
+#define F 9   //R.L. Window Up
+#define G 10  //R.R. Window Down
+#define H 11  //R.R. Window Up
+#define I 12  //WorkIn Back.
+#define J 13  //WorkIn Forw.
+#define K A0  //Sunroof Open
+#define L A1  //Sunroof Close
+#define M A2  //SunroofTilt Open
+#define N A3  //SunroofTilt Close
+#define O A4  //Trunk Open
+#define P A5  //Trunk Close
+#define Q A6  //Door Open
+#define R A7  //Door Close
+*/
