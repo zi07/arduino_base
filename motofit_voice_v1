@@ -27,36 +27,37 @@ void data_r(){
 
 void loop() {
   int_data = 0;
+  base_delay = 500;
   data_r();
   if ((4 <= int_data)&&(int_data <= 21)){
-      Serial.println(int_data);
-      digitalWrite(int_data,LOW);
-      pre_millis = millis();
-      int_data_old = int_data;
-      while((millis()-pre_millis) < base_delay ) {
-        data_r();
-        if(int_data_old == int_data-32) {break;}
-      }
-      digitalWrite(int_data_old,HIGH);
+    if((4 <= int_data)&&(int_data <= 7)) base_delay = window_delay;
+    if((12 <= int_data)&&(int_data <= 13)) base_delay = sunroof_delay;
+    Serial.println(int_data);
+    digitalWrite(int_data,LOW);
+    pre_millis = millis();
+    int_data_old = int_data;
+    while((millis()-pre_millis) < base_delay ) {
+      data_r();
+      if(int_data_old == int_data-32) {break;}
     }
+    digitalWrite(int_data_old,HIGH);
+  }
 }
 /*
 #define A 4   //F.L. Window Down
 #define B 5   //F.L. Window Up
 #define C 6   //F.R. Window Down
 #define D 7   //F.R. Window Up
-#define E 8   //R.L. Window Down
-#define F 9   //R.L. Window Up
-#define G 10  //R.R. Window Down
-#define H 11  //R.R. Window Up
-#define I 12  //WorkIn Back.
-#define J 13  //WorkIn Forw.
-#define K A0  //Sunroof Open
-#define L A1  //Sunroof Close
-#define M A2  //SunroofTilt Open
-#define N A3  //SunroofTilt Close
-#define O A4  //Trunk Open
-#define P A5  //Trunk Close
-#define Q A6  //Door Open
-#define R A7  //Door Close
+#define E 8   //WorkIn Back.
+#define F 9   //WorkIn Forw.
+#define E 10  //SeatTilt Back.
+#define F 11  //SeatTilt Forw.
+#define G 12  //Sunroof Open
+#define H 13  //Sunroof Close
+#define I A0  //SunroofTilt Open
+#define J A1  //SunroofTilt Close
+#define K A2  //Trunk Open
+#define L A3  //Trunk Close
+#define M A4  //Door Open
+#define N A5  //Door Close
 */
