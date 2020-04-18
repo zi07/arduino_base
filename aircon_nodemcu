@@ -3,8 +3,103 @@
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
+#include <TimeLib.h>
+#include <TimeAlarms.h>
 ESP8266WiFiMulti WiFiMulti;
-void IRsend(int IRpin, int IRsignal[]) {
+
+int pin_arr[] = {16,5,4,0,2};
+//NodeMCU D0=GPIO16, D1=GPIO5, D2=GPIO4, D3=GPIO0, D3=GPIO2(TX LED)...
+void setup() {
+  Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+  WiFiMulti.addAP("MOTOFIT_2G", "wl123456");
+  WiFiMulti.addAP("MAXSPEED PC", "1808000220");
+  WiFiMulti.addAP("iptime", "");
+  for(int i=0; i<5; i++) {pinMode(pin_arr[i],OUTPUT);}
+  setTime(13,15,30,18,4,20); // 2020.04.18/pm1:15:30
+  //Alarm.alarmRepeat(13,9,0,WeeklyAlarm);
+}
+void loop() {
+  if ((WiFiMulti.run() == WL_CONNECTED)) {
+    WiFiClient client;
+    HTTPClient http;
+    
+    //1번째 http code 긁어오기
+    http.begin(client, "http://edong.dothome.co.kr/_motofit/read_nodemcu1.php");
+    int httpCode = http.GET();
+    if (httpCode > 0) {
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+      if (httpCode == HTTP_CODE_OK) {
+        int payload_int[220];
+        String payload = http.getString(); //payload에 긁어온 결과를 담기
+        for (int i=0; i<=210; i++){ 
+          int comma_cnt = payload.indexOf(",",0); // 컴마를 0번째 위치부터 서칭해서 컴마위치 되돌림
+          payload_int[i] = payload.substring(0,comma_cnt).toInt(); // 배열에 정수변환해서 담음
+          //Serial.print(i); Serial.print(" => "); //몇번째 배열인지 출력(주석처리)
+          //Serial.print(payload_int[i]);Serial.print(" / "); //배열출력(주석처리)
+          payload.remove(0,comma_cnt+1); // 컴마를 기준으로 앞부분을 삭제
+        } //for close
+        Serial.print("payload => "); 
+        Serial.println(payload); 
+      }
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    //2번째 http code 긁어오기
+    http.begin(client, "http://edong.dothome.co.kr/_motofit/read_nodemcu2.php");
+    int httpCode2 = http.GET();
+    if (httpCode2 > 0) {
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+      if (httpCode2 == HTTP_CODE_OK) {
+        String payload2 = http.getString(); //payload에 긁어온 결과를 담기
+        Serial.print("payload2 => ");
+        Serial.println(payload2);
+
+      }
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+    
+
+
+
+    
+  http.end();
+ //여기서부터 대충붙여넣기
+ http.begin(client, "http://edong.dothome.co.kr/_motofit/insert_remote.php?temp=0&aircon_on=1");
+ httpCode = http.GET();
+ if (httpCode > 0) {
+ if (httpCode == HTTP_CODE_OK) {
+ String payload = http.getString();
+ }}
+  http.end();
+ //여기까지 대충붙여넣기
+}
+digitalClockDisplay();
+Serial.println();Serial.println("delay code");
+for(int i=1; i<5; i++) {
+  Serial.print(pin_arr[i]);
+  digitalWrite(pin_arr[i],1);delay(500);
+  digitalWrite(pin_arr[i],0);delay(500);
+ }
+}
+
+
+//IRsend(16,payload_int);
+       //delayMicroseconds(200);
+       //IRsend(16,payload_int);
+
+
+
+
+
+
+
+
+
+
+ void IRsend(int IRpin, int IRsignal[]) {
   int i=0;
   pinMode(IRpin, OUTPUT);
   do {
@@ -25,47 +120,23 @@ void IRsend(int IRpin, int IRsignal[]) {
   }
   while (IRsignal[i] != 0);
 }
-
-void setup() {
-  Serial.begin(115200);
-  WiFi.mode(WIFI_STA);
-  WiFiMulti.addAP("MOTOFIT_2G", "wl123456");
+void WeeklyAlarm(){
+  for(int i=0; i<10; i++){
+  Serial.println("Warning!:");}
 }
-void loop() {
-  if ((WiFiMulti.run() == WL_CONNECTED)) {
-    WiFiClient client;
-    HTTPClient http;
-    Serial.print("[HTTP] begin...\n");
-    http.begin(client, "http://edong.dothome.co.kr/_motofit/read_nodemcu1.php");
-    Serial.print("[HTTP] GET...\n");
-    int httpCode = http.GET();
-    if (httpCode > 0) {
-      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-      if (httpCode == HTTP_CODE_OK) {
-        int payload_int[220];
-        String payload = http.getString();
-        for (int i=0; i<=220; i++){ 
-          int comma_cnt = payload.indexOf(",",0);
-          payload_int[i] = payload.substring(0,comma_cnt).toInt();
-          Serial.print(i); Serial.print(" => "); 
-          Serial.println(payload_int[i]);
-          payload.remove(0,comma_cnt+1); 
-        } //for close
-       IRsend(16,payload_int);
-      }
-    } else {
-      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-    }
-  http.end();
- //여기서부터 대충붙여넣기
- http.begin(client, "http://edong.dothome.co.kr/_motofit/insert_remote.php?temp=0&aircon_on=1");
- httpCode = http.GET();
- if (httpCode > 0) {
- if (httpCode == HTTP_CODE_OK) {
- String payload = http.getString();
- }}
-  http.end();
- //여기까지 대충붙여넣기
-}
- delay(3000);
+void digitalClockDisplay(){
+  // digital clock display of the time
+  Serial.print(hour());
+  Serial.print(minute());
+  Serial.print(second());
+  Serial.print(" ");
+  Serial.print(day());
+  Serial.print(" ");
+  Serial.print(month());
+  Serial.print(" ");
+  Serial.print(year()); 
+  Serial.print(" ");
+  Serial.print(weekday());
+  Serial.println(); 
+  
 }
