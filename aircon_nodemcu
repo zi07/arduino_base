@@ -12,12 +12,14 @@ int pin_arr[] = {16,5,4,0,2};
 void setup() {
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
+  WiFiMulti.addAP("MOTOFIT_5G", "13725613");
   WiFiMulti.addAP("MOTOFIT_2G", "wl123456");
   WiFiMulti.addAP("MAXSPEED PC", "1808000220");
   WiFiMulti.addAP("iptime", "");
   for(int i=0; i<5; i++) {pinMode(pin_arr[i],OUTPUT);}
   setTime(13,15,30,18,4,20); // 2020.04.18/pm1:15:30
   //Alarm.alarmRepeat(13,9,0,WeeklyAlarm);
+  digitalWrite(5,HIGH);
 }
 void loop() {
   if ((WiFiMulti.run() == WL_CONNECTED)) {
@@ -32,6 +34,8 @@ void loop() {
       if (httpCode == HTTP_CODE_OK) {
         int payload_int[220];
         String payload = http.getString(); //payload에 긁어온 결과를 담기
+        Serial.print("payload => "); 
+        Serial.println(payload);
         for (int i=0; i<=210; i++){ 
           int comma_cnt = payload.indexOf(",",0); // 컴마를 0번째 위치부터 서칭해서 컴마위치 되돌림
           payload_int[i] = payload.substring(0,comma_cnt).toInt(); // 배열에 정수변환해서 담음
@@ -39,8 +43,7 @@ void loop() {
           //Serial.print(payload_int[i]);Serial.print(" / "); //배열출력(주석처리)
           payload.remove(0,comma_cnt+1); // 컴마를 기준으로 앞부분을 삭제
         } //for close
-        Serial.print("payload => "); 
-        Serial.println(payload); 
+        IRsend(16,payload_int);
       }
     } else {
       Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
@@ -53,9 +56,38 @@ void loop() {
       Serial.printf("[HTTP] GET... code: %d\n", httpCode);
       if (httpCode2 == HTTP_CODE_OK) {
         String payload2 = http.getString(); //payload에 긁어온 결과를 담기
-        Serial.print("payload2 => ");
         Serial.println(payload2);
+        int int_ye = payload2.substring(2,4).toInt();
+        int int_mo = payload2.substring(5,7).toInt();
+        int int_da = payload2.substring(8,10).toInt();
+        int int_ho = payload2.substring(11,13).toInt();
+        int int_mi = payload2.substring(14,16).toInt();
+        int int_se = payload2.substring(17,19).toInt();
+        int int_cu_100 = ((int_ho * 100 ) + int_mi);
+        setTime(int_ho,int_mi,int_se,int_da,int_mo,int_ye);
+        int int_on_ho = payload2.substring(21,23).toInt();
+        int int_on_mi = payload2.substring(24,26).toInt();
+        int int_off_ho = payload2.substring(30,32).toInt();
+        int int_off_mi = payload2.substring(33,35).toInt();
+        int int_on_100 = ((int_on_ho * 100 ) + int_on_mi);
+        int int_off_100 = ((int_off_ho * 100 ) + int_off_mi);
+       
+        if ( int_on_100 > int_off_100 ) {
+          //if(int_cu_100 <= 2400) 
+          if(int_on_100<=int_cu_100) {digitalWrite(5, LOW);}
+          if(int_off_100<=int_cu_100) {digitalWrite(5, HIGH);}           
+        }
 
+        if ( int_on_100 < int_off_100 ) {
+          if(int_on_100<=int_cu_100) {digitalWrite(5, LOW);}
+          if(int_off_100<=int_cu_100) {digitalWrite(5, HIGH);}
+        }
+
+
+        
+        Serial.println(int_on_100);
+        Serial.println(int_off_100);
+        Serial.println(int_cu_100);
       }
     } else {
       Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
@@ -78,7 +110,7 @@ void loop() {
 }
 digitalClockDisplay();
 Serial.println();Serial.println("delay code");
-for(int i=1; i<5; i++) {
+for(int i=2; i<5; i++) {
   Serial.print(pin_arr[i]);
   digitalWrite(pin_arr[i],1);delay(500);
   digitalWrite(pin_arr[i],0);delay(500);
@@ -86,7 +118,6 @@ for(int i=1; i<5; i++) {
 }
 
 
-//IRsend(16,payload_int);
        //delayMicroseconds(200);
        //IRsend(16,payload_int);
 
@@ -126,8 +157,11 @@ void WeeklyAlarm(){
 }
 void digitalClockDisplay(){
   // digital clock display of the time
+  Serial.print("Now = ");
   Serial.print(hour());
+  Serial.print(":");
   Serial.print(minute());
+  Serial.print(":");
   Serial.print(second());
   Serial.print(" ");
   Serial.print(day());
@@ -138,5 +172,4 @@ void digitalClockDisplay(){
   Serial.print(" ");
   Serial.print(weekday());
   Serial.println(); 
-  
 }
