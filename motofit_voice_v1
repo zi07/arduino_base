@@ -36,9 +36,10 @@ void loop() {
     digitalWrite(int_data,LOW);
     pre_millis = millis();
     int_data_old = int_data;
+    int_data=0;
     while((millis()-pre_millis) < base_delay ) {
       data_r();
-      if(int_data_old == int_data-32) {break;}
+      if(int_data_old == int_data) {break;}
     }
     digitalWrite(int_data_old,HIGH);
   }
