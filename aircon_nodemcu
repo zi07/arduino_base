@@ -9,6 +9,10 @@ ESP8266WiFiMulti WiFiMulti;
 
 int pin_arr[] = {16,5,4,0,2};
 //NodeMCU D0=GPIO16, D1=GPIO5, D2=GPIO4, D3=GPIO0, D3=GPIO2(TX LED)...
+long long_cu = 0;
+long long_on = 0;
+long long_off = 0;
+
 void setup() {
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
@@ -63,40 +67,19 @@ void loop() {
         int int_ho = payload2.substring(11,13).toInt();
         int int_mi = payload2.substring(14,16).toInt();
         int int_se = payload2.substring(17,19).toInt();
-        int int_cu_100 = ((int_ho * 100 ) + int_mi);
         setTime(int_ho,int_mi,int_se,int_da,int_mo,int_ye);
         int int_on_ho = payload2.substring(21,23).toInt();
         int int_on_mi = payload2.substring(24,26).toInt();
         int int_off_ho = payload2.substring(30,32).toInt();
         int int_off_mi = payload2.substring(33,35).toInt();
-        int int_on_100 = ((int_on_ho * 100 ) + int_on_mi);
-        int int_off_100 = ((int_off_ho * 100 ) + int_off_mi);
-       
-        if ( int_on_100 > int_off_100 ) {
-          //if(int_cu_100 <= 2400) 
-          if(int_on_100<=int_cu_100) {digitalWrite(5, LOW);}
-          if(int_off_100<=int_cu_100) {digitalWrite(5, HIGH);}           
-        }
-
-        if ( int_on_100 < int_off_100 ) {
-          if(int_on_100<=int_cu_100) {digitalWrite(5, LOW);}
-          if(int_off_100<=int_cu_100) {digitalWrite(5, HIGH);}
-        }
-
-
-        
-        Serial.println(int_on_100);
-        Serial.println(int_off_100);
-        Serial.println(int_cu_100);
+        long_on = ((int_on_ho * 10000 ) + (int_on_mi * 100));
+        long_off = ((int_off_ho * 10000 ) + (int_off_mi * 100));
+ 
       }
     } else {
       Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
     }
-    
-
-
-
-    
+   
   http.end();
  //여기서부터 대충붙여넣기
  http.begin(client, "http://edong.dothome.co.kr/_motofit/insert_remote.php?temp=0&aircon_on=1");
@@ -108,27 +91,32 @@ void loop() {
   http.end();
  //여기까지 대충붙여넣기
 }
+/////////////////////////////////////////////////////////////////////////////////
+    long_cu = (hour()*10000) + (minute()*100) + second();
+    if ( long_on > long_off ) { 
+      if((long_on <= long_cu)&&(long_cu <= 240000)) {digitalWrite(5, LOW);}
+      else if ((0 <= long_cu)&&(long_cu <= long_off)) {digitalWrite(5, LOW);}
+      else {digitalWrite(5, HIGH);}
+    }
+    if ( long_on < long_off ) {
+      if((long_on <= long_cu) && (long_cu <= long_off)) {digitalWrite(5, LOW);}
+      else {digitalWrite(5, HIGH);}
+    }
+    Serial.println(long_on);
+    Serial.println(long_off);
+    Serial.println(long_cu);
+///////////////////////////////////////////////////////////////////////////////// 
 digitalClockDisplay();
-Serial.println();Serial.println("delay code");
+Serial.println();Serial.print("delay code");
 for(int i=2; i<5; i++) {
   Serial.print(pin_arr[i]);
   digitalWrite(pin_arr[i],1);delay(500);
   digitalWrite(pin_arr[i],0);delay(500);
  }
+ Serial.println();
 }
-
-
        //delayMicroseconds(200);
        //IRsend(16,payload_int);
-
-
-
-
-
-
-
-
-
 
  void IRsend(int IRpin, int IRsignal[]) {
   int i=0;
