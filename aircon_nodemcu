@@ -29,7 +29,7 @@ void loop() {
   if ((WiFiMulti.run() == WL_CONNECTED)) {
     WiFiClient client;
     HTTPClient http;
-    
+    digitalWrite(4, HIGH); digitalWrite(0,LOW);   
     //1번째 http code 긁어오기
     http.begin(client, "http://edong.dothome.co.kr/_motofit/read_nodemcu1.php");
     int httpCode = http.GET();
@@ -74,7 +74,6 @@ void loop() {
         int int_off_mi = payload2.substring(33,35).toInt();
         long_on = ((int_on_ho * 10000 ) + (int_on_mi * 100));
         long_off = ((int_off_ho * 10000 ) + (int_off_mi * 100));
- 
       }
     } else {
       Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
@@ -91,6 +90,8 @@ void loop() {
   http.end();
  //여기까지 대충붙여넣기
 }
+digitalWrite(4, LOW); digitalWrite(0,HIGH);   
+
 /////////////////////////////////////////////////////////////////////////////////
     long_cu = (hour()*10000) + (minute()*100) + second();
     if ( long_on > long_off ) { 
@@ -107,13 +108,8 @@ void loop() {
     Serial.println(long_cu);
 ///////////////////////////////////////////////////////////////////////////////// 
 digitalClockDisplay();
-Serial.println();Serial.print("delay code");
-for(int i=2; i<5; i++) {
-  Serial.print(pin_arr[i]);
-  digitalWrite(pin_arr[i],1);delay(500);
-  digitalWrite(pin_arr[i],0);delay(500);
- }
- Serial.println();
+  digitalWrite(2,LOW);delay(1000);
+  digitalWrite(2,HIGH);delay(1000); Serial.println();
 }
        //delayMicroseconds(200);
        //IRsend(16,payload_int);
