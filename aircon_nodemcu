@@ -23,7 +23,7 @@ void setup() {
   for(int i=0; i<5; i++) {pinMode(pin_arr[i],OUTPUT);}
   setTime(13,15,30,18,4,20); // 2020.04.18/pm1:15:30
   //Alarm.alarmRepeat(13,9,0,WeeklyAlarm);
-  digitalWrite(5,HIGH);
+  digitalWrite(5,LOW);
 }
 void loop() {
   if ((WiFiMulti.run() == WL_CONNECTED)) {
@@ -95,13 +95,13 @@ digitalWrite(4, LOW); digitalWrite(0,HIGH);
 /////////////////////////////////////////////////////////////////////////////////
     long_cu = (hour()*10000) + (minute()*100) + second();
     if ( long_on > long_off ) { 
-      if((long_on <= long_cu)&&(long_cu <= 240000)) {digitalWrite(5, LOW);}
-      else if ((0 <= long_cu)&&(long_cu <= long_off)) {digitalWrite(5, LOW);}
-      else {digitalWrite(5, HIGH);}
+      if((long_on <= long_cu)&&(long_cu <= 240000)) {digitalWrite(5, HIGH);}
+      else if ((0 <= long_cu)&&(long_cu <= long_off)) {digitalWrite(5, HIGH);}
+      else {digitalWrite(5, LOW);}
     }
     if ( long_on < long_off ) {
-      if((long_on <= long_cu) && (long_cu <= long_off)) {digitalWrite(5, LOW);}
-      else {digitalWrite(5, HIGH);}
+      if((long_on <= long_cu) && (long_cu <= long_off)) {digitalWrite(5, HIGH);}
+      else {digitalWrite(5, LOW);}
     }
     Serial.println(long_on);
     Serial.println(long_off);
