@@ -1,0 +1,37 @@
+#include <avr/sleep.h>
+const int wakeUpPin = 2; // pin of interrupt 0
+const int LED = 13;
+void setup() {
+  pinMode(wakeUpPin, INPUT_PULLUP); 
+  pinMode(LED, OUTPUT);
+  delay(5000);
+}
+
+void loop() {
+  digitalWrite(LED, HIGH);
+  delay(5000);
+  digitalWrite(LED, LOW);
+  goToSleep();
+}
+
+void goToSleep() {
+  sleep_enable();
+  attachInterrupt(0, wakeUp, LOW);   // LOW, HIGH, RISING, FALLING, CHANGE
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  cli();
+  byte oldADC = ADCSRA;              // save the ADC Control and Status Register A 
+  ADCSRA = 0;                        // disable the ADC
+  // sleep_bod_disable();            // --> not supported command for ATmega168
+  sei();
+  sleep_cpu();                       // sleep now... z z z z z
+  sleep_disable();                   // wake up here
+  detachInterrupt(0); 
+  ADCSRA = oldADC;                   // restore ADCSRA
+}
+
+void wakeUp() {
+ pinMode (13, OUTPUT);
+ digitalWrite (13, HIGH);
+ delay(120000);
+ // Do something !!!
+}
