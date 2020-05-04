@@ -1,0 +1,22 @@
+#include <SoftwareSerial.h>
+SoftwareSerial blueSerial(2,3); 
+void setup() 
+{
+ Serial.begin(9600);
+ blueSerial.begin(9600); 
+ pinMode(4,OUTPUT);
+ digitalWrite(4,HIGH);
+ Serial.println("[AT Command Mode]");
+}
+unsigned char char_time = 0;
+void loop()
+{
+ while (blueSerial.available()){
+  Serial.write(blueSerial.read());
+ }
+ while (Serial.available())
+  blueSerial.write(Serial.read());
+ delay(100);
+if (char_time == 0)   Serial.println("...");
+char_time++;
+}
