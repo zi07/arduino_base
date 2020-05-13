@@ -1,0 +1,156 @@
+#include <ThreeWire.h>  
+#include <RtcDS1302.h>
+#include <TM1637Display.h>
+#define CLK 2
+#define DIO 3
+//#define TEST_DELAY   900
+ThreeWire myWire(A4,A5,A2); // IO, SCLK, CE
+RtcDS1302<ThreeWire> Rtc(myWire);
+TM1637Display display(CLK, DIO);
+
+unsigned long cTime = 0; // 현재 시간 저장
+unsigned long pTime = 0; // 1초마다 시간 증가
+unsigned long bTime = 0; // 콜론의 blink 간격
+bool bFlag = false; // 콜론의 blink 상태 체크
+int second = 0;
+int minute = 0;
+uint8_t data[] = { 0xff, 0xff, 0xff, 0xff };
+boolean bo = 0;
+
+
+void setup () 
+{
+    Serial.begin(115200);
+    Serial.print("compiled: ");
+    Serial.print(__DATE__);
+    Serial.print(" ");
+    Serial.println(__TIME__);
+    Rtc.Begin();
+    RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
+    Serial.print("printDateTime(compiled) => ");
+    printDateTime(compiled);
+    Serial.println();
+    
+///////////////////////////////////////////////////////////////////////////////////////////
+    if (!Rtc.IsDateTimeValid()) 
+    {
+        // Common Causes:
+        //    1) first time you ran and the device wasn't running yet
+        //    2) the battery on the device is low or even missing
+
+        Serial.println("RTC lost confidence in the DateTime!");
+        Rtc.SetDateTime(compiled);
+    }
+
+    if (Rtc.GetIsWriteProtected())
+    {
+        Serial.println("RTC was write protected, enabling writing now");
+        Rtc.SetIsWriteProtected(false);
+    }
+
+    if (!Rtc.GetIsRunning())
+    {
+        Serial.println("RTC was not actively running, starting now");
+        Rtc.SetIsRunning(true);
+    }
+
+    RtcDateTime now = Rtc.GetDateTime();
+    if (now < compiled) 
+    {
+        Serial.println("RTC is older than compile time!  (Updating DateTime)");
+        Rtc.SetDateTime(compiled);
+    }
+    else if (now > compiled) 
+    {
+        Serial.println("RTC is newer than compile time. (this is expected)");
+    }
+    else if (now == compiled) 
+    {
+        Serial.println("RTC is the same as compile time! (not expected but all is fine)");
+    }
+///////////////////////////////////////////////////////////////////////////////////////////
+    display.setBrightness(0x0a);
+
+}
+
+void loop () {
+    cTime = millis();
+    if (cTime - pTime >= 1000) {
+    second++;
+    if (second == 60) {
+      second = 0;
+      minute++;
+      if (minute == 60) minute = 0;
+    }
+    RtcDateTime now = Rtc.GetDateTime();
+
+    printDateTime(now);
+    Serial.println();
+
+    if (!now.IsValid())
+    {
+        // Common Causes:
+        //    1) the battery on the device is low or even missing and the power line was disconnected
+        Serial.println("RTC lost confidence in the DateTime!");
+    }
+
+    //delay(1000); // ten seconds
+}
+}
+
+
+#define countof(a) (sizeof(a) / sizeof(a[0]))
+
+void printDateTime(const RtcDateTime& dt)
+{
+    char datestring[20];
+
+    snprintf_P(datestring, 
+            countof(datestring),
+            PSTR("%02u/%02u/%04u %02u:%02u:%02u"),
+            dt.Month(),
+            dt.Day(),
+            dt.Year(),
+            dt.Hour(),
+            dt.Minute(),
+            dt.Second() );
+    Serial.print(datestring);
+    /*
+    data[0] = display.encodeDigit(dt.Hour()/10);
+    data[1] = display.encodeDigit(dt.Hour()%10);
+    data[2] = display.encodeDigit(dt.Minute()/10);
+    data[3] = display.encodeDigit(dt.Minute()%10);
+    display.setSegments(data);
+    */
+    //void showNumberDecEx(int num, uint8_t dots = 0, bool leading_zero = false, uint8_t length = 4, uint8_t pos = 0);
+    //display.showNumberDecEx(dt.Hour(), 1, 1, 2, 0);
+    //display.showNumberDecEx(dt.Minute(), 1, 1, 2, 2);
+    pTime = cTime;
+    
+    if (cTime - bTime >= 500) {
+    if (bFlag) {
+      data[0] = display.encodeDigit(dt.Hour()/10);
+      data[1] = display.encodeDigit(dt.Hour()%10);
+      data[2] = display.encodeDigit(dt.Minute()/10);
+      data[3] = display.encodeDigit(dt.Minute()%10);
+      data[1] = data[1] | 0x80; // 콜론 비트 활성
+      display.setSegments(data);
+      bFlag = false;
+    } else {
+      data[0] = display.encodeDigit(dt.Hour()/10);
+      data[1] = display.encodeDigit(dt.Hour()%10);
+      data[2] = display.encodeDigit(dt.Minute()/10);
+      data[3] = display.encodeDigit(dt.Minute()%10);
+      data[1] = data[1] & 0x7f; // 콜론 비트 비활성
+      display.setSegments(data);
+      bFlag = true;
+    }
+    }
+    
+    //display.showDots(1,1);
+    
+    
+    //display.clear();
+    
+    
+}
