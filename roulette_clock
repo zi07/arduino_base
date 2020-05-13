@@ -3,10 +3,14 @@
 #include <TM1637Display.h>
 #define CLK 2
 #define DIO 3
+#define CLK1 4
+#define DIO1 5
+
 //#define TEST_DELAY   900
 ThreeWire myWire(A4,A5,A2); // IO, SCLK, CE
 RtcDS1302<ThreeWire> Rtc(myWire);
 TM1637Display display(CLK, DIO);
+TM1637Display display1(CLK1, DIO1);
 
 unsigned long cTime = 0; // 현재 시간 저장
 unsigned long pTime = 0; // 1초마다 시간 증가
@@ -70,6 +74,7 @@ void setup ()
     }
 ///////////////////////////////////////////////////////////////////////////////////////////
     display.setBrightness(0x0a);
+    display1.setBrightness(0x0a);
 
 }
 
@@ -146,7 +151,12 @@ void printDateTime(const RtcDateTime& dt)
       bFlag = true;
     }
     }
-    
+    data[0] = display1.encodeDigit(dt.Month()/10);
+    data[1] = display1.encodeDigit(dt.Month()%10);
+    data[2] = display1.encodeDigit(dt.Day()/10);
+    data[3] = display1.encodeDigit(dt.Day()%10);
+    display1.setSegments(data);
+
     //display.showDots(1,1);
     
     
