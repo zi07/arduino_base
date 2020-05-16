@@ -1,39 +1,51 @@
 #include <avr/sleep.h>
 const int wakeUpPin = 2; // pin of interrupt 0
-const int LED = 13;
-unsigned long LED_on_time = 100000; //100seconds
+const int LED = 9;
+unsigned long LED_on_time = 10000; //10seconds
 unsigned long pre_time = 0;
 int tilt_wait_time = 100;
+int brightness = 0;
+int fadeAmount = 5;
+
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   pinMode(wakeUpPin, INPUT_PULLUP); 
   pinMode(LED, OUTPUT);
   delay(3000);
 }
 
 void loop() {
-  Serial.println("main loop start");
+  Serial.println("start");
   goToSleep();
-  Serial.println("MainRoot");
+  Serial.println("while Loop");
   while(1){
-    if(digitalRead(wakeUpPin)&&((pre_time+tilt_wait_time)<millis())){
+    delay(10);
+    if(digitalRead(wakeUpPin)){
       Serial.println("Tilt UP!!!");
-      goToSleep();
+      break;
     }
-    
+          
     if((pre_time+LED_on_time)<millis()){
       Serial.println("Time over!!!");
-      goToSleep();      
+      break;      
     }
-  digitalWrite(LED, HIGH);
+    
+    if((pre_time+tilt_wait_time)<millis()){
+      analogWrite(LED, brightness);
+      brightness = brightness + fadeAmount;
+      if (brightness <= 0 || brightness >= 255) {
+        fadeAmount = -fadeAmount;
+      }
+    }
+    delay(30);
   }
 }
 
 void goToSleep() {
   digitalWrite(LED, LOW);
-  Serial.println("goToSleep Loop");
+  Serial.println("Sleep Loop");
   sleep_enable();
-  attachInterrupt(0, wakeUp, RISING);   // LOW, HIGH, RISING, FALLING, CHANGE
+  attachInterrupt(0, wakeUp, CHANGE);   // LOW, HIGH, RISING, FALLING, CHANGE
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   cli();
   sleep_bod_disable();            // --> not supported command for ATmega168
