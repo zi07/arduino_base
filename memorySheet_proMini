@@ -68,4 +68,24 @@ void loop() {
     }
     delay(POLL_DELAY_MSEC);
 }
- 
+
+
+
+/* 74HC595 Code (Output) 
+void setup() {
+  pinMode(5, OUTPUT);
+  pinMode(6, OUTPUT);
+  pinMode(4, OUTPUT);
+}
+void loop() {
+  for (int i = 0 ; i < 8 ; i++) {
+    // latch의 비활성화하여 데이터를 입력받도록 설정합니다.
+    digitalWrite(5, LOW); //latch pin D5
+    // 데이터로 입력된 값을 클럭 펄스로 동기화하여 시프트 레지스터에 저장합니다.
+    shiftOut(4, 6, MSBFIRST, 1 << i); //clock pin D6, data pin D4
+    // latch를 활성화하여 저장된 입력된 데이터를 출력핀으로 전달합니다.
+    digitalWrite(5, HIGH);
+    delay(10);
+  }
+}
+*/
