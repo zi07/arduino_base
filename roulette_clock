@@ -73,8 +73,8 @@ void setup ()
         Serial.println("RTC is the same as compile time! (not expected but all is fine)");
     }
 ///////////////////////////////////////////////////////////////////////////////////////////
-    display.setBrightness(0x0a);
-    display1.setBrightness(0x0a);
+    display.setBrightness(0x00);
+    display1.setBrightness(0x00);
 
 }
 
