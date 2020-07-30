@@ -22,13 +22,13 @@ void setup() {
   for(int i=0; i<5; i++) {pinMode(pin_arr[i],OUTPUT);}
   setTime(13,15,30,18,4,20); // 2020.04.18/pm1:15:30
   //Alarm.alarmRepeat(13,9,0,WeeklyAlarm);
-  digitalWrite(5,LOW);
+  digitalWrite(5,HIGH);
 }
 void loop() {
   if ((WiFiMulti.run() == WL_CONNECTED)) {
     WiFiClient client;
     HTTPClient http;
-    digitalWrite(4, HIGH); digitalWrite(0,LOW);   
+    digitalWrite(4, HIGH); digitalWrite(0,LOW);digitalWrite(5,HIGH);   
     //1번째 http code 긁어오기
     http.begin(client, "http://edong.dothome.co.kr/_hoban/read_nodemcu1.php");
     int httpCode = http.GET();
@@ -88,8 +88,9 @@ void loop() {
  }}
   http.end();
  //여기까지 대충붙여넣기
+ digitalWrite(4, LOW); digitalWrite(0,HIGH);  digitalWrite(5,LOW);
 }
-digitalWrite(4, LOW); digitalWrite(0,HIGH);   
+ 
 
 /////////////////////////////////////////////////////////////////////////////////
     long_cu = (hour()*10000) + (minute()*100) + second();
@@ -121,8 +122,10 @@ digitalClockDisplay();
       int duration = IRsignal[i];
       while (duration > 0) {
         digitalWrite(IRpin, HIGH);
+        digitalWrite(5, HIGH);//적외선과동일하게 D1(GPIO5) display용
         delayMicroseconds(10);
         digitalWrite(IRpin, LOW);
+        digitalWrite(5, LOW);//적외선과동일하게 D1(GPIO5) display용
         delayMicroseconds(10);
         duration -= 26;         // 38 kHz = 26.3 uSec
       }
